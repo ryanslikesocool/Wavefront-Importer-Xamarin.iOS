@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using SceneKit;
 using System.Linq;
 using Foundation;
-using UIKit;
 using System.IO;
 
 public static class WavefrontImporter {
-    public static void ImportOBJ(string path) {
+    public static SCNGeometry ImportOBJ(string path) {
         string resourcesPath = NSBundle.MainBundle.ResourcePath;
         string[] fileContents = File.ReadLines(resourcesPath + path).ToArray();
 
@@ -24,12 +23,7 @@ public static class WavefrontImporter {
         SCNGeometryElement vertexElement = SCNGeometryElement.FromData(vertexIndexData, SCNGeometryPrimitiveType.Triangles, vertexIndices.Length, sizeof(int));
         SCNGeometryElement normalElement = SCNGeometryElement.FromData(normalIndexData, SCNGeometryPrimitiveType.Triangles, normalIndices.Length, sizeof(int));
 
-        SCNNode customWavefront = SCNNode.Create();
-        customWavefront.Name = "Shape";
-        customWavefront.Geometry = SCNGeometry.Create(new[] { vertexSource, normalSource }, new[] { vertexElement, normalElement });
-        customWavefront.Geometry.FirstMaterial.Diffuse.Contents = UIColor.LightGray;
-
-        ModelView.ModelViewScene.instance.scene.RootNode.AddChildNode(customWavefront);
+        return SCNGeometry.Create(new[] { vertexSource, normalSource }, new[] { vertexElement, normalElement });
     }
 
     public static SCNVector3[] OBJVertices(string[] file) {
