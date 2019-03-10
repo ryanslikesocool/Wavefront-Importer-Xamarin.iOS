@@ -1,4 +1,4 @@
-## Xamarin.iOS-Wavefront-Importer
+## Wavefront Importer for Xamarin.iOS
 A C# wavefront (.obj) importer for Xamarin.iOS and SceneKit
 
 ### Usage
