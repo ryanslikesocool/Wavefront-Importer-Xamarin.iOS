@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
+using SceneKit;
 using System.Linq;
 using Foundation;
-using SceneKit;
+using System.IO;
 
 public class WavefrontImporter {
     string[] vertexLines;
@@ -12,7 +12,7 @@ public class WavefrontImporter {
 
     int polygonCount = 0;
 
-    public Tuple<ModelStructure, SCNGeometry> ImportOBJAsObject(string path) {
+    public SCNGeometry ImportOBJ(string path) {
         string[] fileContents = File.ReadLines(path).ToArray();
 
         GetLines(fileContents);
@@ -36,10 +36,7 @@ public class WavefrontImporter {
         SCNGeometrySource normalSource = SCNGeometrySource.FromNormals(normals);
         SCNGeometryElement vertexElement = SCNGeometryElement.FromData(vertexIndexData, SCNGeometryPrimitiveType.Polygon, polygonCount, sizeof(int));
 
-        ModelStructure modelData = new ModelStructure(vertexIndexPrefix, vertexIndices, vertexPoints, normalPoints);
-        SCNGeometry geometry = SCNGeometry.Create(new[] { vertexSource, normalSource }, new[] { vertexElement });
-
-        return new Tuple<ModelStructure, SCNGeometry>(modelData, geometry);
+        return SCNGeometry.Create(new[] { vertexSource, normalSource }, new[] { vertexElement });
     }
 
     void GetLines(string[] file) {
@@ -66,35 +63,35 @@ public class WavefrontImporter {
     }
 
     Tuple<int[], int[], int[]> SplitIndices(string[] lines) {
-        int[] vertexIndicesPrefix = new int[lines.Length];
-        int[] returnVertexIndices = new int[lines.Length];
-        int[] returnNormalIndices = new int[lines.Length];
+        List<int> vertexIndicesPrefix = new List<int>();
+        List<int> returnVertexIndices = new List<int>();
+        List<int> returnNormalIndices = new List<int>();
 
         for (int i = 0; i < lines.Length; i++) {
             string trim = lines[i].TrimStart('f', ' ');
             string[] indices = trim.Split(" ");
 
-            vertexIndicesPrefix[i] = indices.Length;
+            vertexIndicesPrefix.Add(indices.Length);
 
             for (int j = 0; j < indices.Length; j++) {
-                returnVertexIndices[i] = int.Parse(indices[j].Split("//")[0]) - 1;
-                returnNormalIndices[i] = int.Parse(indices[j].Split("//")[1]) - 1;
+                returnVertexIndices.Add(int.Parse(indices[j].Split("//")[0]) - 1);
+                returnNormalIndices.Add(int.Parse(indices[j].Split("//")[1]) - 1);
             }
         }
-
-        return new Tuple<int[], int[], int[]>(vertexIndicesPrefix, returnVertexIndices, returnNormalIndices);
+        
+        return new Tuple<int[], int[], int[]>(vertexIndicesPrefix.ToArray(), returnVertexIndices.ToArray(), returnNormalIndices.ToArray());
     }
 
     SCNVector3[] LinesToPoints(string[] lines) {
-        SCNVector3[] returnPoints = new SCNVector3[lines.Length];
+        List<SCNVector3> returnPoints = new List<SCNVector3>();
 
         for (int i = 0; i < lines.Length; i++) {
             string[] parts = lines[i].Split(" ");
             SCNVector3 point = new SCNVector3(float.Parse(parts[0]), float.Parse(parts[1]), float.Parse(parts[2]));
-            returnPoints[i] = point;
+            returnPoints.Add(point);
         }
 
-        return returnPoints;
+        return returnPoints.ToArray();
     }
 
     SCNVector3[] OrderPoints(SCNVector3[] points, int[] indices) {
@@ -121,9 +118,7 @@ public class WavefrontImporter {
         return returnIndices;
     }
 
-
-
-    NSData IndexData(int[] indices) {
+    public NSData IndexData(int[] indices) {
         byte[][] returnIndexArray = new byte[indices.Length][];
         for (int i = 0; i < indices.Length; i++) {
             returnIndexArray[i] = BitConverter.GetBytes(indices[i]);
