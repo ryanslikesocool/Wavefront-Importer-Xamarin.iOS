@@ -5,7 +5,6 @@ using System.Linq;
 using Foundation;
 using SceneKit;
 
-
 public class WavefrontImporter {
         string[] vertexLines;
         string[] normalLines;
@@ -139,3 +138,4 @@ public class WavefrontImporter {
             return SCNVector3.Normalize(SCNVector3.Cross(b - a, c - a));
         }*/
     }
+}
